@@ -8,6 +8,23 @@ srcDir        = "src"
 binDir        = "build"
 bin           = @["packnim", "tools/list"]
 
+task debug, "Build and run a normal debug build":
+  --verbose
+  --deepcopy:on
+  --threads:on
+  --define:lto
+  --mm:orc
+  --define:enableTinyPoolLogging
+  --define:normDebug
+  --stackTrace:on 
+  --lineTrace:on 
+  --styleCheck:usages
+  --spellSuggest:50
+  --excessiveStackTrace:on
+  --define:ssl
+  --define:verbose
+  --outdir:"build/"
+  setCommand "c", "src/packnim.nim"
 
 # Dependencies
 

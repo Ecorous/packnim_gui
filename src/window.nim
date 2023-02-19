@@ -14,33 +14,19 @@
 
 import ./packwiz
 import ./types
+import ./utils
+import ./logging
 import nigui
+import std/httpclient
 
-var mainWindowX = newWindow "PackNim"
-
-proc mainWindow() = 
-    mainWindowX.width = 600.scaleToDpi
-    mainWindowX.height = 400.scaleToDpi
-    var container = newLayoutContainer Layout_Vertical
-
-    mainWindowX.add container
-    var createNewPackButton = newButton "Create New Pack"
-    var gap = newLabel "\n"
-    var openPackButton = newButton "Open an Existing Pack"
-    container.add createNewPackButton
-    container.add gap
-    container.add openPackButton
-    createNewPackButton.onClick = proc (event: ClickEvent) =
-        packCreate()
-    show mainWindow
-
-proc getMainWindow(): Window = mainWindowX
+let logger: Logger = getLogger "packnim_gui".createLoggingSource "windowManager"
 
 proc editPack*(pack: Modpack) =
     var editPackWindow = newWindow "Editing " & pack.packName & " - PackNim"
+    
     show editPackWindow
 
-proc packCreate*() = 
+proc packCreate*() =
     var createWindow = newWindow "Create New Pack - PackNim"
     createWindow.width = 400
     createWindow.height = 600
@@ -80,36 +66,69 @@ proc packCreate*() =
     var loaderBox = newComboBox loaders
     var loadervContainer = newLayoutContainer Layout_Horizontal
     var loadervText = newLabel "Quilt Loader Version:"
-    var loadervBox = newTextBox()
+
+    var loaderVersions: seq[string] = getQuiltVersions()
+    var loadervChoiceBox = newComboBox loaderVersions
+    var loadervTextBox = newTextBox()
     loaderContainer.add loaderText
     loaderContainer.add loaderBox
     loadervContainer.add loadervText
-    loadervContainer.add loadervBox
+    loadervContainer.add loadervTextBox
+    loadervTextBox.hide
+    loadervContainer.add loadervChoiceBox
     createContainer.add loaderContainer
     createContainer.add loadervContainer
     
     loaderBox.onChange = proc(event: ComboBoxChangeEvent) =
+        loadervText.hide
+        loadervTextBox.hide
+        loadervChoiceBox.hide
         case loaderBox.options[loaderBox.index]:
             of $ModLoader.Quilt:
                 loadervText.text = "Quilt Loader Version:"
                 loadervText.show
-                loadervBox.show
+                loaderVersions = getQuiltVersions()
+                loadervChoiceBox.options = loaderVersions
+                loadervChoiceBox.show
             of $ModLoader.Fabric:
                 loadervText.text = "Fabric Loader Version:"
                 loadervText.show
-                loadervBox.show
+                loaderVersions = getFabricVersions()
+                loadervChoiceBox.options = loaderVersions
+                loadervChoiceBox.show
             of $ModLoader.Forge:
                 loadervText.text = "Forge Version:"
                 loadervText.show
-                loadervBox.show
-            of $ModLoader.None:
-                loadervText.hide
-                loadervBox.hide
+                loadervTextBox.show
         createContainer.forceRedraw()
     var submitButton = newButton "Submit"
     createContainer.add submitButton
     submitButton.onClick = proc (event: ClickEvent) =
-        let pack = packwizInit(nameBox.text, authorBox.text, versionBox.text, mcVersionBox.text, loaderBox.options[loaderBox.index].toModLoader, loadervBox.text)
+        var modloaderVersion: string = ""
+        if loadervChoiceBox.options[loaderBox.index].toModLoader == ModLoader.Quilt or loadervChoiceBox.options[loaderBox.index].toModLoader == ModLoader.Fabric:
+            modloaderVersion = loadervChoiceBox.options[loadervChoiceBox.index]
+        else:
+            modloaderVersion = loadervTextBox.text
+
+        let pack = packwizInit(nameBox.text, authorBox.text, versionBox.text, mcVersionBox.text, loaderBox.options[loaderBox.index].toModLoader, modloaderVersion)
         editPack(pack)
     createWindow.add createContainer
     show createWindow
+
+proc mainWindow*() = 
+    var mainWindowX = newWindow "PackNim"
+    utils.alertWindow = mainWindowX
+    mainWindowX.width = 600.scaleToDpi
+    mainWindowX.height = 400.scaleToDpi
+    var container = newLayoutContainer Layout_Vertical
+
+    mainWindowX.add container
+    var createNewPackButton = newButton "Create New Pack"
+    var gap = newLabel "\n"
+    var openPackButton = newButton "Open an Existing Pack"
+    container.add createNewPackButton
+    container.add gap
+    container.add openPackButton
+    createNewPackButton.onClick = proc (event: ClickEvent) =
+        packCreate()
+    show mainWindowX

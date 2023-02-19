@@ -12,10 +12,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ./window
 import ./logging
+import std/strutils
+import std/httpclient
 import nigui
+import std/json
+
+let quiltMetaServer = "https://meta.quiltmc.org/v3/"
+let fabricMetaServer = "https://meta.fabricmc.net/v2/"
+var client* = newHttpClient()
+var alertWindow*: Window # Rely on window.nim to set this
 
 proc alertError*(logger: Logger, message: varargs[string]) = 
-    getMainWindow().alert message.join("")
+    alertWindow.alert message.join("")
     logger.error message
+
+proc getQuiltVersions*(): seq[string] =
+    result = @[]
+    var url = quiltMetaServer & "versions/loader"
+    let response = client.getContent url
+    let x = json.parseJson response
+    for node in x.items:
+        result.add node{"version"}.getStr "NIL"
+
+proc getFabricVersions*(): seq[string] =
+    result = @[]
+    var url = fabricMetaServer & "versions/loader"
+    let response = client.getContent url
+    let x = json.parseJson response
+    for node in x.items:
+        result.add node{"version"}.getStr "NIL"
+    
+
+proc getMainWindow*(): Window = 
+    alertWindow
