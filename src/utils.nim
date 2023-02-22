@@ -17,9 +17,15 @@ import std/strutils
 import std/httpclient
 import nigui
 import std/json
+import std/os
 
-let quiltMetaServer = "https://meta.quiltmc.org/v3/"
-let fabricMetaServer = "https://meta.fabricmc.net/v2/"
+let quiltMetaServer* = "https://meta.quiltmc.org/v3/"
+let fabricMetaServer* = "https://meta.fabricmc.net/v2/"
+
+var currentError* = false
+
+let instancesDir* = getDataDir() / "packnim" / "instances"
+
 var client* = newHttpClient()
 var alertWindow*: Window # Rely on window.nim to set this
 

@@ -13,8 +13,10 @@
  See the License for the specific language governing permissions and
  limitations under the License. 
 ]#
-import std/strutils
-
+import std/[
+    strutils,
+    os
+]
 type ModLoader* = enum
     None, Fabric, Forge, Quilt
 
@@ -44,6 +46,7 @@ type Modpack* = object
     packVersion*: string
     mcVersion*: string
     modloader*: Modloader
+    id*: string
     mods*: seq[Mod]
 
 proc toModLoader*(input: string): Modloader =

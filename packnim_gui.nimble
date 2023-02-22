@@ -13,6 +13,7 @@ task debug, "Build and run a normal debug build":
   --deepcopy:on
   --threads:on
   --define:lto
+  --run
   --mm:orc
   --define:enableTinyPoolLogging
   --define:normDebug

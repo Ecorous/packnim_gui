@@ -16,7 +16,7 @@
 
 import ./types
 import ./logging
-#import ./packwiz
+import ./packwiz
 import ./window
 
 import nigui
@@ -25,4 +25,5 @@ app.init()
 let logger: Logger = getLogger "packnim_gui".createLoggingSource "main"
 logger.info "Loading packnim_gui!"
 mainWindow()
+discard getPackwiz()
 run app
